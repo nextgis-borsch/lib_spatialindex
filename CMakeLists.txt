@@ -239,16 +239,11 @@ endif(APPLE)
 #------------------------------------------------------------------------------
 # subdirectory controls
 #------------------------------------------------------------------------------
-set(EXPORT_TARGETS)
 
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_SHARED_LIBS)
-    set(EXPORT_NAME ${PROJECT_NAME})
-else()
-    set(EXPORT_NAME ${PROJECT_NAME}static)
-endif()
+set(EXPORT_NAME ${PROJECT_NAME})
 
 if(EXPORT_TARGETS)
     export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)

@@ -1,44 +1,65 @@
+################################################################################
+# Project:  Lib SpatialIndex
+# Purpose:  CMake build scripts
+# Author:   Dmitry Baryshnikov, dmitry.baryshnikov@nexgis.com
+################################################################################
+# Copyright (C) 2017, NextGIS <info@nextgis.com>
+#
+# Rewrited original cmake script by Marios Hadjieleftheriou. Above ariginal
+# header text
 #
 # top-level CMake configuration file for PDAL
 #
 # (based originally on the libLAS files copyright Mateusz Loskot)
+################################################################################
 
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(spatialindex)
 
 #------------------------------------------------------------------------------
 # internal cmake settings
 #------------------------------------------------------------------------------
 
+# Some init settings
 set(CMAKE_COLOR_MAKEFILE ON)
+# Set path to additional CMake modules
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-include(GNUInstallDirs)
-set(INSTALL_BIN_DIR ${CMAKE_INSTALL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
-set(INSTALL_LIB_DIR ${CMAKE_INSTALL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
-set(INSTALL_INC_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for headers" FORCE)
-
-# Allow advanced users to generate Makefiles printing detailed commands
-mark_as_advanced(CMAKE_VERBOSE_MAKEFILE)
-
-# Path to additional CMake modules
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-
-if (CMAKE_MAJOR_VERSION GREATER 2)
-    cmake_policy(SET CMP0042 OLD) # osx rpath
+if(OSX_FRAMEWORK AND (BUILD_SHARED_LIBS OR BUILD_STATIC_LIBS))
+  message(FATAL_ERROR "Only OSX_FRAMEWORK key or any or both BUILD_SHARED_LIBS
+                       and BUILD_STATIC_LIBS keys are permitted")
 endif()
+
+if(OSX_FRAMEWORK)
+  set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/Applications" CACHE INTERNAL "Installation directory for executables" FORCE)
+  set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
+  set(SKIP_INSTALL_HEADERS OFF)
+  set(SKIP_INSTALL_EXECUTABLES ON)
+  set(SKIP_INSTALL_FILES ON)
+  set(SKIP_INSTALL_EXPORT ON)
+  set(CMAKE_MACOSX_RPATH ON)
+else()
+
+    include(GNUInstallDirs)
+    set(INSTALL_BIN_DIR ${CMAKE_INSTALL_FULL_BINDIR} CACHE INTERNAL "Installation directory for executables" FORCE)
+    set(INSTALL_LIB_DIR ${CMAKE_INSTALL_FULL_LIBDIR} CACHE INTERNAL "Installation directory for libraries" FORCE)
+    set(INSTALL_INC_DIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}" CACHE INTERNAL "Installation directory for headers" FORCE)
+endif()
+
 #------------------------------------------------------------------------------
 # libspatialindex general settings
 #------------------------------------------------------------------------------
+include(util)
+check_version(SIDX_VERSION_MAJOR SIDX_VERSION_MINOR SIDX_VERSION_PATCH SIDX_LIB_VERSION SIDX_LIB_SOVERSION)
+set(VERSION ${SIDX_VERSION_MAJOR}.${SIDX_VERSION_MINOR}.${SIDX_VERSION_PATCH})
+set(SIDX_VERSION_STRING ${VERSION})
 
-SET(SIDX_VERSION_MAJOR "1")
-SET(SIDX_VERSION_MINOR "8")
-SET(SIDX_VERSION_PATCH "5")
-SET(SIDX_LIB_VERSION "4.1.0")
-SET(SIDX_LIB_SOVERSION "4")
+if(OSX_FRAMEWORK)
+    set(FRAMEWORK_VERSION "${SIDX_VERSION_MAJOR}")
+endif()
+report_version(${PROJECT_NAME} ${VERSION})
 
-
-set(SIDX_VERSION_STRING "${SIDX_VERSION_MAJOR}.${SIDX_VERSION_MINOR}.${SIDX_VERSION_PATCH}")
-
+configure_file(${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 
 # Name of C++ library
 
@@ -155,9 +176,6 @@ if(WIN32)
     endif()
   endif()
 
-  set(CMAKE_INCLUDE_PATH c:/osgeo4w/include;$ENV{CMAKE_INCLUDE_PATH})
-  set(CMAKE_LIBRARY_PATH c:/osgeo4w/lib;$ENV{CMAKE_LIBRARY_PATH})
-
   set(SIDX_OS_WIN32 1)
 
 else()
@@ -166,7 +184,7 @@ else()
   # Recommended C++ compilation flags
   # -Weffc++
   set(SIDX_COMMON_CXX_FLAGS
-    "-pedantic -Wall -Wpointer-arith -Wcast-align -Wcast-qual  -Wredundant-decls -Wno-long-long")
+    "-pedantic -Wall -Wpointer-arith -Wcast-align -Wcast-qual -Wredundant-decls -Wno-long-long")
 
   if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
@@ -241,10 +259,32 @@ endif(APPLE)
 #------------------------------------------------------------------------------
 
 add_subdirectory(src)
-add_subdirectory(test)
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 set(EXPORT_NAME ${PROJECT_NAME})
 
-if(EXPORT_TARGETS)
+if (REGISTER_PACKAGE)
+    export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake)
+    set(EXPORT_PACKAGE_NAME SpatialIndex)
+    string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
+    set(EXPORT_PACKAGE_LIB_NAME ${EXPORT_NAME})
+
+    export(PACKAGE ${EXPORT_PACKAGE_NAME})
+
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(
+        ${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}Config.cmake
+        INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/${EXPORT_PACKAGE_NAME}ConfigVersion.cmake
+        VERSION ${VERSION}
+        COMPATIBILITY AnyNewerVersion )
+else()
     export(TARGETS ${EXPORT_TARGETS} FILE ${EXPORT_NAME}-exports.cmake EXPORT_LINK_INTERFACE_LIBRARIES)
 endif()
+
+# Uninstall
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

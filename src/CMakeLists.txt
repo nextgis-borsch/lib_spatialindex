@@ -189,9 +189,6 @@ set(SIDX_SOURCES
 
 if(WIN32)
     add_definitions("-DSIDX_DLL_EXPORT=1")
-if (NOT WITH_STATIC_LASZIP)
-    add_definitions("-DSIDX_DLL_IMPORT=1")
-endif()
 endif()
 
 add_library(${SIDX_LIB_NAME} SHARED ${SIDX_SOURCES})
@@ -212,20 +209,15 @@ set_target_properties(${SIDX_C_LIB_NAME}
     PROPERTIES VERSION "${SIDX_LIB_VERSION}"
                SOVERSION "${SIDX_LIB_SOVERSION}" )
 
+set_property(TARGET ${SIDX_LIB_NAME} APPEND PROPERTY
+   INTERFACE_COMPILE_DEFINITIONS
+       "SIDX_DLL_IMPORT=1" )
+set_property(TARGET ${SIDX_C_LIB_NAME} APPEND PROPERTY
+  INTERFACE_COMPILE_DEFINITIONS
+      "SIDX_DLL_IMPORT=1" )
 
 set(EXPORT_TARGETS ${EXPORT_TARGETS} ${SIDX_LIB_NAME} ${SIDX_C_LIB_NAME} PARENT_SCOPE)
 
-if (APPLE)
-  set_target_properties(
-    ${SIDX_LIB_NAME}
-    PROPERTIES
-    INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib" BUILD_WITH_INSTALL_RPATH OFF)
-
-  set_target_properties(
-    ${SIDX_C_LIB_NAME}
-    PROPERTIES
-    INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib" BUILD_WITH_INSTALL_RPATH OFF)
-endif()
 
 ###############################################################################
 # Targets installation

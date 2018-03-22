@@ -189,7 +189,7 @@ set(SIDX_SOURCES
 #endif()
 
 if(WIN32)
-    add_definitions("-DSIDX_DLL_EXPORT=1")
+    add_definitions("-DSPATIALINDEX_CREATE_DLL=1" -DNOMINMAX)
 endif()
 
 if(BUILD_SHARED_LIBS)

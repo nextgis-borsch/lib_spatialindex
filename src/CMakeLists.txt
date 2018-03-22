@@ -250,17 +250,28 @@ set_property(TARGET ${SIDX_C_LIB_NAME} APPEND PROPERTY
   INTERFACE_COMPILE_DEFINITIONS
       "SIDX_DLL_IMPORT=1" )
 
-set(EXPORT_TARGETS ${EXPORT_TARGETS} ${SIDX_LIB_NAME} ${SIDX_C_LIB_NAME} PARENT_SCOPE)
+# Add path to includes to build-tree export
+target_include_directories(${SIDX_LIB_NAME} INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_include_directories(${SIDX_C_LIB_NAME} INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
 
+# Add all targets to the build-tree export set
+export(TARGETS ${SIDX_LIB_NAME} ${SIDX_C_LIB_NAME}
+    FILE ${PROJECT_BINARY_DIR}/${PACKAGE_UPPER_NAME}Targets.cmake)
 
 ###############################################################################
 # Targets installation
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     install(TARGETS ${SIDX_LIB_NAME} ${SIDX_C_LIB_NAME}
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT libraries
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT libraries
+        EXPORT ${PACKAGE_UPPER_NAME}Targets
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+        INCLUDES DESTINATION ${INSTALL_INC_DIR}
         FRAMEWORK DESTINATION ${INSTALL_LIB_DIR}
     )
 endif()
@@ -268,7 +279,7 @@ endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
     install(DIRECTORY ${SIDX_HEADERS_DIR}
         #DESTINATION include/spatialindex
-        DESTINATION ${INSTALL_INC_DIR}
+        DESTINATION ${INSTALL_INC_DIR}/${PROJECT_NAME}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 endif()
 
@@ -276,4 +287,14 @@ if(OSX_FRAMEWORK)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/spatialindex/tools
         DESTINATION ${INSTALL_LIB_DIR}/${SIDX_LIB_NAME}.framework/Headers
         FILES_MATCHING PATTERN "*.h")
+endif()
+
+if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
+    # Install the <Package>Config.cmake
+    install(FILES
+      ${PROJECT_BINARY_DIR}/${PACKAGE_UPPER_NAME}Config.cmake
+      DESTINATION ${INSTALL_CMAKECONF_DIR} COMPONENT dev)
+
+    # Install the export set for use with the install-tree
+    install(EXPORT ${PACKAGE_UPPER_NAME}Targets DESTINATION ${INSTALL_CMAKECONF_DIR} COMPONENT dev)
 endif()

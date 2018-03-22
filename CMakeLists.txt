@@ -255,6 +255,10 @@ endif(APPLE)
 #set(SIDX_INCLUDE_DIR ${SIDX_INCLUDE_SUBDIR})
 #set(SIDX_DATA_DIR ${SIDX_DATA_SUBDIR})
 
+
+set(PACKAGE_NAME ${PROJECT_NAME})
+string(TOUPPER ${PACKAGE_NAME} PACKAGE_UPPER_NAME)
+
 #------------------------------------------------------------------------------
 # subdirectory controls
 #------------------------------------------------------------------------------
@@ -264,9 +268,6 @@ enable_testing()
 if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
-
-set(PACKAGE_NAME ${PROJECT_NAME})
-string(TOUPPER ${PACKAGE_NAME} PACKAGE_UPPER_NAME)
 
 # uninstall
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

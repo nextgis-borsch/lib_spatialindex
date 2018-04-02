@@ -39,6 +39,7 @@ if(OSX_FRAMEWORK)
     set(INSTALL_BIN_DIR "bin" CACHE INTERNAL "Installation directory for executables" FORCE)
     set(INSTALL_LIB_DIR "Library/Frameworks" CACHE INTERNAL "Installation directory for libraries" FORCE)
     set(INSTALL_CMAKECONF_DIR ${INSTALL_LIB_DIR}/${SIDX_LIB_NAME}.framework/Resources/CMake CACHE INTERNAL "Installation directory for cmake config files" FORCE)
+    set(INSTALL_INC_DIR "${INSTALL_LIB_DIR}/${SIDX_LIB_NAME}.framework/Headers" CACHE INTERNAL "Installation directory for headers" FORCE)  # For package paths
     set(SKIP_INSTALL_HEADERS ON)
     set(SKIP_INSTALL_EXECUTABLES ON)
     set(SKIP_INSTALL_FILES ON)

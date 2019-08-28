@@ -29,7 +29,6 @@ set(SIDX_CAPI_DIR "${PROJECT_SOURCE_DIR}/src/capi")
 set(SIDX_BASE_HPP
   "${SIDX_HEADERS_DIR}/LineSegment.h"
   "${SIDX_HEADERS_DIR}/MovingPoint.h"
-  "${SIDX_HEADERS_DIR}/MovingRegion.h"
   "${SIDX_HEADERS_DIR}/MVRTree.h"
   "${SIDX_HEADERS_DIR}/Point.h"
   "${SIDX_HEADERS_DIR}/Region.h"
@@ -72,6 +71,7 @@ set(SIDX_CAPI_CPP
   "${SIDX_CAPI_DIR}/sidx_api.cc"
   "${SIDX_CAPI_DIR}/Utility.cc"
 )
+list (APPEND SIDX_CPP ${SIDX_CAPI_CPP} )
 
 
 set(SIDX_SPATIALINDEX_CPP
@@ -189,7 +189,7 @@ set(SIDX_SOURCES
 #endif()
 
 if(WIN32)
-    add_definitions("-DSPATIALINDEX_CREATE_DLL=1" -DNOMINMAX)
+  add_definitions("-DSIDX_DLL_EXPORT=1")
 endif()
 
 if(BUILD_SHARED_LIBS)

@@ -93,9 +93,8 @@ check_function_exists(memset HAVE_MEMSET)
 check_function_exists(memcpy HAVE_MEMCPY)
 check_function_exists(bcopy HAVE_BCOPY)
 
-INCLUDE (CheckIncludeFiles)
-check_include_files(pthread.h HAVE_PTHREAD_H)
 
+INCLUDE (CheckIncludeFiles)
 
 if (HAVE_SRAND48)
     add_definitions(-DHAVE_SRAND48=1)
@@ -159,16 +158,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${SIDX_BUILD_OUTPUT_DIRECTORY})
 
 if(WIN32)
   if (MSVC)
-    if (MSVC80 OR MSVC90 OR MSVC10 OR MSVC11 OR MSVC12 OR MSVC13)
-      add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-      add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-      add_definitions(-D_CRT_NONSTDC_NO_WARNING)
-      add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-      add_definitions(-DSPATIALINDEX_CREATE_DLL=1)
-      add_definitions(-DNOMINMAX)
-
-      set(SIDX_COMPILER_MSVC 1)
-    endif()
+    add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_NONSTDC_NO_WARNING)
+    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+    add_definitions(-DSPATIALINDEX_CREATE_DLL=1)
+    add_definitions(-DNOMINMAX)
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /wd4068")
 
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
       string(REGEX REPLACE "/W[0-4]" "/W4"
@@ -178,27 +174,25 @@ if(WIN32)
     endif()
   endif()
 
-  set(SIDX_OS_WIN32 1)
-
 else()
   # not WIN32
 
   # Recommended C++ compilation flags
   # -Weffc++
   set(SIDX_COMMON_CXX_FLAGS
-    "-pedantic -Wall -Wpointer-arith -Wcast-align -Wcast-qual -Wredundant-decls -Wno-long-long")
+    "-pedantic -Wall -Wpointer-arith -Wcast-align -Wcast-qual  -Wredundant-decls -Wno-long-long")
 
   if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SIDX_COMMON_CXX_FLAGS}")
-    if (CMAKE_COMPILER_IS_GNUCXX)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -ansi")
+    if (CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_SYSTEM_NAME STREQUAL "CYGWIN")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 
     set(SIDX_COMPILER_GCC 1)
 
   elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER}" MATCHES "clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SIDX_COMMON_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} ${SIDX_COMMON_CXX_FLAGS}")
     set(SIDX_COMPILER_CLANG 1)
   endif()
 endif(WIN32)

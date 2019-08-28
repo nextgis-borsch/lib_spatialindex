@@ -5,7 +5,7 @@
  * Copyright (c) 2002, Marios Hadjieleftheriou
  *
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -30,6 +30,7 @@
 #include "Statistics.h"
 #include "Node.h"
 #include "PointerPoolNode.h"
+#include <memory>
 
 namespace SpatialIndex
 {
@@ -60,7 +61,7 @@ namespace SpatialIndex
 				// RegionPoolCapacity       VT_LONG   Default is 1000
 				// PointPoolCapacity        VT_LONG   Default is 500
 
-			virtual ~RTree();
+			~RTree() override;
 
 
 
@@ -69,6 +70,7 @@ namespace SpatialIndex
 			//
 			virtual void insertData(uint32_t len, const byte* pData, const IShape& shape, id_type shapeIdentifier);
 			virtual bool deleteData(const IShape& shape, id_type id);
+			virtual void internalNodesQuery(const IShape& query, IVisitor& v);
 			virtual void containsWhatQuery(const IShape& query, IVisitor& v);
 			virtual void intersectsWithQuery(const IShape& query, IVisitor& v);
 			virtual void pointLocationQuery(const Point& query, IVisitor& v);
@@ -80,6 +82,7 @@ namespace SpatialIndex
 			virtual void addCommand(ICommand* pCommand, CommandType ct);
 			virtual bool isIndexValid();
 			virtual void getStatistics(IStatistics** out) const;
+			virtual void flush();
 
 		private:
 			void initNew(Tools::PropertySet&);
@@ -97,8 +100,8 @@ namespace SpatialIndex
 
 			void rangeQuery(RangeQueryType type, const IShape& query, IVisitor& v);
 			void selfJoinQuery(id_type id1, id_type id2, const Region& r, IVisitor& vis);
-            void visitSubTree(NodePtr subTree, IVisitor& v);
-            
+			void visitSubTree(NodePtr subTree, IVisitor& v);
+
 			IStorageManager* m_pStorageManager;
 
 			id_type m_rootID, m_headerID;
@@ -139,13 +142,9 @@ namespace SpatialIndex
 			Tools::PointerPool<Node> m_indexPool;
 			Tools::PointerPool<Node> m_leafPool;
 
-			std::vector<Tools::SmartPointer<ICommand> > m_writeNodeCommands;
-			std::vector<Tools::SmartPointer<ICommand> > m_readNodeCommands;
-			std::vector<Tools::SmartPointer<ICommand> > m_deleteNodeCommands;
-
-#ifdef HAVE_PTHREAD_H
-			pthread_mutex_t m_lock;
-#endif
+			std::vector<std::shared_ptr<ICommand> > m_writeNodeCommands;
+			std::vector<std::shared_ptr<ICommand> > m_readNodeCommands;
+			std::vector<std::shared_ptr<ICommand> > m_deleteNodeCommands;
 
 			class NNEntry
 			{
@@ -155,7 +154,7 @@ namespace SpatialIndex
 				double m_minDist;
 
 				NNEntry(id_type id, IEntry* e, double f) : m_id(id), m_pEntry(e), m_minDist(f) {}
-				~NNEntry() {}
+				~NNEntry() = default;
 
 				struct ascending : public std::binary_function<NNEntry*, NNEntry*, bool>
 				{
@@ -166,12 +165,12 @@ namespace SpatialIndex
 			class NNComparator : public INearestNeighborComparator
 			{
 			public:
-				double getMinimumDistance(const IShape& query, const IShape& entry)
+				double getMinimumDistance(const IShape& query, const IShape& entry) override
 				{
 					return query.getMinimumDistance(entry);
 				}
 
-				double getMinimumDistance(const IShape& query, const IData& data)
+				double getMinimumDistance(const IShape& query, const IData& data) override
 				{
 					IShape* pS;
 					data.getShape(&pS);

@@ -1,57 +1,20 @@
 include_directories(../include)
 
-set (DIR geometry)
+if(MSVC_VERSION GREATER_EQUAL 1900)
+   add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+endif()
+
+include(FindAnyProject)
+find_anyproject(GTest REQUIRED)
+
 set (SOURCES
-        Intersection
-        )
+    gtest/test.h
+    gtest/sidx_api_test.h
+    gtest/main.cc 
+)
 
-foreach (test ${SOURCES})
-    add_executable(test-${DIR}-${test} ${DIR}/${test}.cc)
-    target_link_libraries(test-${DIR}-${test} ${SIDX_LIB_NAME})
-    add_test(NAME test-${DIR}-${test} COMMAND ${SIDX_BUILD_OUTPUT_DIRECTORY}/test-${DIR}-${test})
-endforeach()
+set (TESTNAME libsidxtest)
+add_executable(${TESTNAME} ${SOURCES})
+target_link_libraries(${TESTNAME} ${SIDX_C_LIB_NAME} ${GTEST_LIBRARIES})
 
-# set (DIR rtree)
-# set (SOURCES
-#         Exhaustive
-#         Generator
-#         RTreeBulkLoad
-#         RTreeLoad
-#         RTreeQuery)
-#
-#
-# foreach (test ${SOURCES})
-#     add_executable(test-${DIR}-${test} ${DIR}/${test}.cc)
-#     target_link_libraries(test-${DIR}-${test} ${SIDX_LIB_NAME})
-#     add_test(NAME test-${DIR}-${test} COMMAND ${SIDX_BUILD_OUTPUT_DIRECTORY}/test-${DIR}-${test})
-# endforeach()
-# 
-# set (DIR mvrtree)
-# set (SOURCES
-#         Exhaustive
-#         Generator
-#         MVRTreeLoad
-#         MVRTreeQuery
-#         )
-#
-#
-# foreach (test ${SOURCES})
-#     add_executable(test-${DIR}-${test} ${DIR}/${test}.cc)
-#     target_link_libraries(test-${DIR}-${test} ${SIDX_LIB_NAME})
-#     add_test(NAME test-${DIR}-${test} COMMAND ${SIDX_BUILD_OUTPUT_DIRECTORY}/test-${DIR}-${test})
-# endforeach()
-
-set (DIR tprtree)
-set (SOURCES
-        # Exhaustive
-        Generator
-        # TPRTreeLoad
-        # TPRTreeQuery
-        )
-
-
-foreach (test ${SOURCES})
-    add_executable(test-${DIR}-${test} ${DIR}/${test}.cc ${DIR}/RandomGenerator.cc)
-    target_link_libraries(test-${DIR}-${test} ${SIDX_LIB_NAME})
-    add_test(NAME test-${DIR}-${test} COMMAND ${SIDX_BUILD_OUTPUT_DIRECTORY}/test-${DIR}-${test})
-endforeach()
+add_test(${TESTNAME} "${PROJECT_BINARY_DIR}/bin/${TESTNAME}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/..")

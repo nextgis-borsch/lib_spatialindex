@@ -5,7 +5,7 @@ if(MSVC_VERSION GREATER_EQUAL 1900)
 endif()
 
 include(FindAnyProject)
-find_anyproject(GTest REQUIRED)
+find_anyproject(GTest REQUIRED SHARED OFF)
 
 set (SOURCES
     gtest/test.h

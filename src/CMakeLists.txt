@@ -29,6 +29,7 @@ set(SIDX_CAPI_DIR "${PROJECT_SOURCE_DIR}/src/capi")
 set(SIDX_BASE_HPP
   "${SIDX_HEADERS_DIR}/LineSegment.h"
   "${SIDX_HEADERS_DIR}/MovingPoint.h"
+  "${SIDX_HEADERS_DIR}/MovingRegion.h"
   "${SIDX_HEADERS_DIR}/MVRTree.h"
   "${SIDX_HEADERS_DIR}/Point.h"
   "${SIDX_HEADERS_DIR}/Region.h"
@@ -53,6 +54,7 @@ set(SIDX_CAPI_HPP
   "${SIDX_HEADERS_CAPI_DIR}/ObjVisitor.h"
   "${SIDX_HEADERS_CAPI_DIR}/sidx_api.h"
   "${SIDX_HEADERS_CAPI_DIR}/sidx_config.h"
+  "${SIDX_HEADERS_CAPI_DIR}/sidx_export.h"
   "${SIDX_HEADERS_CAPI_DIR}/sidx_impl.h"
   "${SIDX_HEADERS_CAPI_DIR}/Utility.h"
 )

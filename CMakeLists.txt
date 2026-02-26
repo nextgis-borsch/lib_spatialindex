@@ -3,7 +3,7 @@
 #
 # (based originally on the PDAL and libLAS files copyright Mateusz Loskot)
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16.3)
 
 #------------------------------------------------------------------------------
 # libspatialindex general settings
@@ -15,6 +15,10 @@ project(spatialindex
   VERSION "2.0.0"
   HOMEPAGE_URL "https://github.com/libspatialindex/libspatialindex"
 )
+
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/borsch/cmake/version.cmake)
+report_version(spatialindex ${PROJECT_VERSION})
+write_version(${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog 2 0 0)
 
 
 set(SIDX_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
@@ -89,91 +93,12 @@ if(BUILD_TESTING)
 endif()
 
 #------------------------------------------------------------------------------
-# CMake package configuration for find_package(libspatialindex)
+# Packaging
 #------------------------------------------------------------------------------
-
-include(CMakePackageConfigHelpers)
-
-set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "include directory")
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} CACHE PATH "lib directory")
-
-configure_package_config_file(
-  libspatialindexConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/libspatialindexConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libspatialindex
-  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR)
-
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/libspatialindexConfigVersion.cmake
-  VERSION ${SIDX_VERSION_STRING}
-  COMPATIBILITY AnyNewerVersion)
-
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/libspatialindexConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/libspatialindexConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libspatialindex)
-
-#------------------------------------------------------------------------------
-# pkg-config support
-#------------------------------------------------------------------------------
-if(NOT WIN32)
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/libspatialindex.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/libspatialindex.pc
-    @ONLY)
-
-  install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/libspatialindex.pc
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-endif()
-
-#------------------------------------------------------------------------------
-# CPack controls
-#------------------------------------------------------------------------------
-
-set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_TWEAK ${PROJECT_VERSION_TWEAK})
-set(CPACK_PACKAGE_NAME "libspatialindex")
-
-set(CPACK_SOURCE_GENERATOR "TBZ2;TGZ")
-set(CPACK_PACKAGE_VENDOR "libspatialindex Development Team")
-set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
-
-set(CPACK_SOURCE_PACKAGE_FILE_NAME
-    "${CMAKE_PROJECT_NAME}-src-${PROJECT_VERSION}")
-
-set(CPACK_SOURCE_IGNORE_FILES
-  "/\\\\.gitattributes"
-  "/\\\\.vagrant"
-  "/\\\\.DS_Store"
-  "/CVS/"
-  "/\\\\.git/"
-  "\\\\.swp$"
-  "~$"
-  "\\\\.\\\\#"
-  "/\\\\#"
-  "CMakeScripts/"
-  "_CPack_Packages"
-  "cmake_install.cmake"
-  "/bin/"
-  "/scripts/"
-  "/azure-pipelines.yml"
-  ".gitignore"
-  ".ninja*"
-  "HOWTORELEASE.txt"
-  "README"
-  "build/"
-  "CMakeFiles"
-  "CTestTestfile.cmake"
-  "/docs/build/"
-  "/doc/presentations/"
-  "package-release.sh"
-  "docker-package.sh"
-  ".gz"
-  ".bz2"
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/borsch/cmake/packaging.cmake)
+create_borsch_package(${PROJECT_NAME}
+  VENDOR NextGIS
+  VERSION ${PROJECT_VERSION}
+  TARGETS spatialindex_c spatialindex
+  HEADERS_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/spatialindex
 )
-
-include(CPack)
-add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
